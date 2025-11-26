@@ -74,7 +74,7 @@ jobs:
         run: |
           dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
             /p:CollectCoverage=true `
-            /p:CoverletOutput=TestResults/coverage.xml `
+            /p:CoverletOutput=coverage.xml `
             /p:CoverletOutputFormat=opencover
         shell: pwsh
       # 3) END: SonarScanner
