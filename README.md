@@ -8,6 +8,14 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ppanchen_NetSdrClient&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ppanchen_NetSdrClient)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ppanchen_NetSdrClient&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ppanchen_NetSdrClient)
 
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=anko02_NetSdrClient)](https://sonarcloud.io/summary/new_code?id=anko02_NetSdrClient)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=anko02_NetSdrClient&metric=coverage)](https://sonarcloud.io/summary/new_code?id=anko02_NetSdrClient)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=anko02_NetSdrClient&metric=bugs)](https://sonarcloud.io/summary/new_code?id=anko02_NetSdrClient)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=anko02_NetSdrClient&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=anko02_NetSdrClient)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=anko02_NetSdrClient&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=anko02_NetSdrClient)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=anko02_NetSdrClient&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=anko02_NetSdrClient)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=anko02_NetSdrClient&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=anko02_NetSdrClient)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=anko02_NetSdrClient&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=anko02_NetSdrClient)
 
 Цей репозиторій використовується для курсу **реінжиніринг ПЗ**. 
 Мета — провести комплексний реінжиніринг спадкового коду NetSdrClient, включаючи рефакторинг архітектури, покращення якості коду, впровадження сучасних практик розробки та автоматизацію процесів контролю якості через CI/CD пайплайни.
