@@ -1,4 +1,4 @@
-﻿
+﻿namespace Client;
 public interface IUdpClient
 {
     event EventHandler<byte[]>? MessageReceived;
