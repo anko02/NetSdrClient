@@ -1,4 +1,4 @@
-﻿namespace Client;
+﻿namespace NetSdrClientApp.Networking;
 public interface IUdpClient
 {
     event EventHandler<byte[]>? MessageReceived;
