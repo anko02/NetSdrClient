@@ -169,7 +169,7 @@ public class NetSdrClientTests
         //act
         await _client.ConnectAsync();
 
-        //assert
+        //assert 
         _tcpMock.Verify(tcp => tcp.Connect(), Times.Never);
         _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Never);
     }
