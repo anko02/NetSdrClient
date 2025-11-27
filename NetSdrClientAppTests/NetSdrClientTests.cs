@@ -153,7 +153,7 @@ public class NetSdrClientTests
         int channel = 0;
 
         //act
-        var result = await _client.ChangeFrequencyAsync(frequency, channel);
+        await _client.ChangeFrequencyAsync(frequency, channel);
 
         //assert
         _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Never);
