@@ -59,7 +59,7 @@ jobs:
           /k:"anko02_NetSdrClient" `
           /o:"anko02" `
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-          /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml"
+          /d:sonar.cs.opencover.reportsPaths="NetSdrClientAppTests/TestResults/coverage.xml"
           /d:sonar.cpd.cs.minimumTokens=40 `
           /d:sonar.cpd.cs.minimumLines=5 `
           /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml `
@@ -72,10 +72,10 @@ jobs:
         run: dotnet build NetSdrClient.sln -c Release --no-restore
       - name: Tests with coverage (OpenCover)
         run: |
-           dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
-             /p:CollectCoverage=true `
-             /p:CoverletOutput=./TestResults/ `
-             /p:CoverletOutputFormat=opencover
+         dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
+          /p:CollectCoverage=true `
+          /p:CoverletOutput=NetSdrClientAppTests/TestResults/coverage.xml `
+          /p:CoverletOutputFormat=opencover
         shell: pwsh
       # 3) END: SonarScanner
       - name: SonarScanner End
