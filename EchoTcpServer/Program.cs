@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 /// <summary>
 /// This program was designed for test purposes only
@@ -13,7 +14,7 @@ namespace EchoServer;
 public class EchoServer
 {
     private readonly int _port;
-    private TcpListener _listener;
+    private TcpListener? _listener;
     private readonly CancellationTokenSource _cancellationTokenSource;
 
 
@@ -84,7 +85,7 @@ public class EchoServer
         Console.WriteLine("Server stopped.");
     }
 
-    public static async Task Main(string[] args)
+    public static Task Main(string[] args)
     {
         EchoServer server = new EchoServer(5000);
 
@@ -187,7 +188,7 @@ public class UdpTimedSender : IDisposable
 
     public void Dispose()
     {
-        SDispose(disposing: true);
+        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
 }
