@@ -177,12 +177,12 @@ namespace NetSdrClientApp.Messages
     public struct MessageHeader
     {
         public ushort HeaderValue;
-        public MessageHeader(MsgTypes type, int msgLength)
+        public MessageHeader(NetSdrMessageHelper.MsgTypes type, int msgLength)
         {
             int lengthWithHeader = msgLength + 2;
 
             //Data Items edge case
-            if (type >= MsgTypes.DataItem0 && lengthWithHeader == _maxDataItemMessageLength)
+            if (type >= NetSdrMessageHelper.MsgTypes.DataItem0 && lengthWithHeader == _maxDataItemMessageLength)
             {
                 lengthWithHeader = 0;
             }
@@ -197,7 +197,7 @@ namespace NetSdrClientApp.Messages
 
         public MsgTypes GetMessageType()
         {
-            return (MsgTypes)(HeaderValue >> 13);
+            return (NetSdrMessageHelper.MsgTypes)(HeaderValue >> 13);
         }
     }
 }

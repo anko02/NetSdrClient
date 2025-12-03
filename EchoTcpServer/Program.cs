@@ -168,9 +168,10 @@ public class UdpTimedSender : IDisposable
 
     public void StopSending()
     {
+        var timer = _timer;
         if (_timer != null)
         {
-            _timer?.Dispose();
+            timer.Dispose();
             _timer = null;
         }
     }
