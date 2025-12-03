@@ -85,7 +85,7 @@ public class EchoServer
         Console.WriteLine("Server stopped.");
     }
 
-    public static Task Main(string[] args)
+    public static void Main(string[] args)
     {
         EchoServer server = new EchoServer(5000);
 
@@ -168,8 +168,11 @@ public class UdpTimedSender : IDisposable
 
     public void StopSending()
     {
-        _timer?.Dispose();
-        _timer = null;
+        if (_timer != null)
+        {
+            _timer.Dispose();
+            _timer = null;
+        }
     }
 
     protected virtual void Dispose(bool disposing)

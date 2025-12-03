@@ -40,7 +40,7 @@ namespace NetSdrClientApp.Messages
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
             
-        {
+        
             public ushort HeaderValue;
 
             public MessageHeader(MsgTypes type, int msgLength)
@@ -65,7 +65,7 @@ namespace NetSdrClientApp.Messages
             {
                 return (MsgTypes)(HeaderValue >> 13);
             }
-        }
+        
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private struct ControlItemHeader
