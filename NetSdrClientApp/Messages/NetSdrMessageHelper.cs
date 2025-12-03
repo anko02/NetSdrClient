@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NetSdrClientApp.Messages
 {
-    //TODO: analyze possible use of [StructLayout] for better performance and readability 
+
     public static class NetSdrMessageHelper
     {
         private const short _maxMessageLength = 8191;
@@ -39,7 +39,7 @@ namespace NetSdrClientApp.Messages
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        private struct MessageHeader
+            
         {
             public ushort HeaderValue;
 
@@ -65,29 +65,6 @@ namespace NetSdrClientApp.Messages
             {
                 return (MsgTypes)(HeaderValue >> 13);
             }
-
-            public int GetMessageLength()
-            {
-                var type = GetMessageType();
-                int msgLength = HeaderValue - ((int)type << 13);
-
-                if (type >= MsgTypes.DataItem0 && msgLength == 0)
-                {
-                    msgLength = _maxDataItemMessageLength;
-                }
-
-                return msgLength;
-            }
-
-            public byte[] ToBytes()
-            {
-                return BitConverter.GetBytes(HeaderValue);
-            }
-
-            public static MessageHeader FromBytes(byte[] bytes)
-            {
-                return new MessageHeader { HeaderValue = BitConverter.ToUInt16(bytes, 0) };
-            }
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -95,14 +72,6 @@ namespace NetSdrClientApp.Messages
         {
             public ushort MessageHeader;
             public ushort ItemCode;
-
-            public byte[] ToBytes()
-            {
-                byte[] result = new byte[4];
-                BitConverter.GetBytes(MessageHeader).CopyTo(result, 0);
-                BitConverter.GetBytes(ItemCode).CopyTo(result, 2);
-                return result;
-            }
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -110,14 +79,6 @@ namespace NetSdrClientApp.Messages
         {
             public ushort MessageHeader;
             public ushort SequenceNumber;
-
-            public byte[] ToBytes()
-            {
-                byte[] result = new byte[4];
-                BitConverter.GetBytes(MessageHeader).CopyTo(result, 0);
-                BitConverter.GetBytes(SequenceNumber).CopyTo(result, 2);
-                return result;
-            }
         }
 
         public static byte[] GetControlItemMessage(MsgTypes type, ControlItemCodes itemCode, byte[] parameters)
