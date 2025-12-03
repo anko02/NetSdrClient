@@ -19,6 +19,8 @@ namespace NetSdrClientApp
 
         public bool IQStarted { get; set; }
 
+        private TaskCompletionSource<byte[]?>? responseTaskSource;
+
         public NetSdrClient(ITcpClient tcpClient, IUdpClient udpClient)
         {
             _tcpClient = tcpClient;
@@ -141,7 +143,7 @@ namespace NetSdrClientApp
                 return null;
             }
 
-            responseTaskSource = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+            responseTaskSource = new TaskCompletionSource<byte[]?>(TaskCreationOptions.RunContinuationsAsynchronously);
             var responseTask = responseTaskSource.Task;
 
             await _tcpClient.SendMessageAsync(msg);

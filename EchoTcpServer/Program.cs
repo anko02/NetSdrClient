@@ -14,7 +14,7 @@ public class EchoServer
 {
     private readonly int _port;
     private TcpListener _listener;
-    private CancellationTokenSource _cancellationTokenSource;
+    private readonly CancellationTokenSource _cancellationTokenSource;
 
 
     public EchoServer(int port)
@@ -48,7 +48,7 @@ public class EchoServer
         Console.WriteLine("Server shutdown.");
     }
 
-    private async Task HandleClientAsync(TcpClient client, CancellationToken token)
+    private static async Task HandleClientAsync(TcpClient client, CancellationToken token)
     {
         using (NetworkStream stream = client.GetStream())
         {
@@ -89,7 +89,7 @@ public class EchoServer
         EchoServer server = new EchoServer(5000);
 
         // Start the server in a separate task
-        _ = Task.Run(() => server.StartAsync());
+        _ = Task.Run(async () => await server.StartAsync());
 
         string host = "127.0.0.1"; // Target IP
         int port = 60000;          // Target Port
@@ -149,9 +149,8 @@ public class UdpTimedSender : IDisposable
         try
         {
             //dummy data
-            Random rnd = new Random();
             byte[] samples = new byte[1024];
-            rnd.NextBytes(samples);
+            RandomNumberGenerator.Fill(samples);
             i++;
 
             byte[] msg = (new byte[] { 0x04, 0x84 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
@@ -188,7 +187,7 @@ public class UdpTimedSender : IDisposable
 
     public void Dispose()
     {
-        StopSending();
-        _udpClient.Dispose();
+        SDispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }
