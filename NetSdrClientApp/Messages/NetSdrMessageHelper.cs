@@ -38,6 +38,88 @@ namespace NetSdrClientApp.Messages
             ReceiverFrequency = 0x0020
         }
 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct MessageHeader
+        {
+            public ushort HeaderValue;
+
+            public MessageHeader(MsgTypes type, int msgLength)
+            {
+                int lengthWithHeader = msgLength + 2;
+
+                //Data Items edge case
+                if (type >= MsgTypes.DataItem0 && lengthWithHeader == _maxDataItemMessageLength)
+                {
+                    lengthWithHeader = 0;
+                }
+
+                if (msgLength < 0 || lengthWithHeader > _maxMessageLength)
+                {
+                    throw new ArgumentException("Message length exceeds allowed value");
+                }
+
+                HeaderValue = (ushort)(lengthWithHeader + ((int)type << 13));
+            }
+
+            public MsgTypes GetMessageType()
+            {
+                return (MsgTypes)(HeaderValue >> 13);
+            }
+
+            public int GetMessageLength()
+            {
+                var type = GetMessageType();
+                int msgLength = HeaderValue - ((int)type << 13);
+
+                if (type >= MsgTypes.DataItem0 && msgLength == 0)
+                {
+                    msgLength = _maxDataItemMessageLength;
+                }
+
+                return msgLength;
+            }
+
+            public byte[] ToBytes()
+            {
+                return BitConverter.GetBytes(HeaderValue);
+            }
+
+            public static MessageHeader FromBytes(byte[] bytes)
+            {
+                return new MessageHeader { HeaderValue = BitConverter.ToUInt16(bytes, 0) };
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct ControlItemHeader
+        {
+            public ushort MessageHeader;
+            public ushort ItemCode;
+
+            public byte[] ToBytes()
+            {
+                byte[] result = new byte[4];
+                BitConverter.GetBytes(MessageHeader).CopyTo(result, 0);
+                BitConverter.GetBytes(ItemCode).CopyTo(result, 2);
+                return result;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct DataItemHeader
+        {
+            public ushort MessageHeader;
+            public ushort SequenceNumber;
+
+            public byte[] ToBytes()
+            {
+                byte[] result = new byte[4];
+                BitConverter.GetBytes(MessageHeader).CopyTo(result, 0);
+                BitConverter.GetBytes(SequenceNumber).CopyTo(result, 2);
+                return result;
+            }
+        }
+
         public static byte[] GetControlItemMessage(MsgTypes type, ControlItemCodes itemCode, byte[] parameters)
         {
             return GetMessage(type, itemCode, parameters);
