@@ -120,6 +120,7 @@ public class UdpTimedSender : IDisposable
     private readonly int _port;
     private readonly UdpClient _udpClient;
     private Timer? _timer;
+    private bool _disposed = false;
 
     public UdpTimedSender(string host, int port)
     {
@@ -130,6 +131,8 @@ public class UdpTimedSender : IDisposable
 
     public void StartSending(int intervalMilliseconds)
     {
+        if (_disposed)
+            throw new ObjectDisposedException(nameof(UdpTimedSender));
         if (_timer != null)
             throw new InvalidOperationException("Sender is already running.");
 
@@ -140,6 +143,9 @@ public class UdpTimedSender : IDisposable
 
     private void SendMessageCallback(object? state)
     {
+        if (_disposed)
+            return;
+
         try
         {
             //dummy data
@@ -164,6 +170,20 @@ public class UdpTimedSender : IDisposable
     {
         _timer?.Dispose();
         _timer = null;
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                StopSending();
+                _udpClient.Dispose();
+            }
+
+            _disposed = true;
+        }
     }
 
     public void Dispose()
