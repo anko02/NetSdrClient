@@ -80,7 +80,7 @@ public class EchoServer
     public void Stop()
     {
         _cancellationTokenSource.Cancel();
-        _listener.Stop();
+        _listener?.Stop();
         _cancellationTokenSource.Dispose();
         Console.WriteLine("Server stopped.");
     }
@@ -169,7 +169,7 @@ public class UdpTimedSender : IDisposable
     public void StopSending()
     {
         var timer = _timer;
-        if (_timer != null)
+        if (timer != null)
         {
             timer.Dispose();
             _timer = null;
@@ -190,7 +190,7 @@ public class UdpTimedSender : IDisposable
         }
     }
 
-    public void Dispose()
+    public void Dispose()   
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);

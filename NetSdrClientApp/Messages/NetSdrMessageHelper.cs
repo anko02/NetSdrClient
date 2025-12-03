@@ -195,7 +195,7 @@ namespace NetSdrClientApp.Messages
             HeaderValue = (ushort)(lengthWithHeader + ((int)type << 13));
         }
 
-        public MsgTypes GetMessageType()
+        public NetSdrMessageHelper.MsgTypes GetMessageType()
         {
             return (NetSdrMessageHelper.MsgTypes)(HeaderValue >> 13);
         }
