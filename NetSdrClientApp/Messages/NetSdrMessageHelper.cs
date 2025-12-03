@@ -39,35 +39,6 @@ namespace NetSdrClientApp.Messages
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-            
-        
-            public ushort HeaderValue;
-
-            public MessageHeader(MsgTypes type, int msgLength)
-            {
-                int lengthWithHeader = msgLength + 2;
-
-                //Data Items edge case
-                if (type >= MsgTypes.DataItem0 && lengthWithHeader == _maxDataItemMessageLength)
-                {
-                    lengthWithHeader = 0;
-                }
-
-                if (msgLength < 0 || lengthWithHeader > _maxMessageLength)
-                {
-                    throw new ArgumentException("Message length exceeds allowed value");
-                }
-
-                HeaderValue = (ushort)(lengthWithHeader + ((int)type << 13));
-            }
-
-            public MsgTypes GetMessageType()
-            {
-                return (MsgTypes)(HeaderValue >> 13);
-            }
-        
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private struct ControlItemHeader
         {
             public ushort MessageHeader;
@@ -199,6 +170,34 @@ namespace NetSdrClientApp.Messages
             {
                 msgLength = _maxDataItemMessageLength;
             }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct MessageHeader
+    {
+        public ushort HeaderValue;
+        public MessageHeader(MsgTypes type, int msgLength)
+        {
+            int lengthWithHeader = msgLength + 2;
+
+            //Data Items edge case
+            if (type >= MsgTypes.DataItem0 && lengthWithHeader == _maxDataItemMessageLength)
+            {
+                lengthWithHeader = 0;
+            }
+
+            if (msgLength < 0 || lengthWithHeader > _maxMessageLength)
+            {
+                throw new ArgumentException("Message length exceeds allowed value");
+            }
+
+            HeaderValue = (ushort)(lengthWithHeader + ((int)type << 13));
+        }
+
+        public MsgTypes GetMessageType()
+        {
+            return (MsgTypes)(HeaderValue >> 13);
         }
     }
 }

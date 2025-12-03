@@ -170,7 +170,7 @@ public class UdpTimedSender : IDisposable
     {
         if (_timer != null)
         {
-            _timer.Dispose();
+            _timer?.Dispose();
             _timer = null;
         }
     }
