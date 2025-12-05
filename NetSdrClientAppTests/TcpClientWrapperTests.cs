@@ -26,7 +26,7 @@ public class TcpClientWrapperTests
     [TearDown]
     public void TearDown()
     {
-        _testServer?.Stop();
+        _testServer?.Dispose();
     }
 
     [Test]
