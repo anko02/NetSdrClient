@@ -16,6 +16,9 @@ namespace NetSdrClientApp.Messages
         private const short _msgControlItemLength = 2; //2 byte, 16 bit
         private const short _msgSequenceNumberLength = 2; //2 byte, 16 bit
 
+        public const short MaxMessageLength = 8191;
+        public const short MaxDataItemMessageLength = 8194;
+
         public enum MsgTypes
         {
             SetControlItem,
@@ -122,23 +125,33 @@ namespace NetSdrClientApp.Messages
 
         public static IEnumerable<int> GetSamples(ushort sampleSize, byte[] body)
         {
-            sampleSize /= 8; //to bytes
-            if (sampleSize  > 4)
+            ValidateSampleSize(sampleSize);
+            return GetSamplesIterator(sampleSize, body);
+        }
+
+        private static void ValidateSampleSize(ushort sampleSize)
+        {
+            var sampleSizeInBytes = sampleSize / 8;
+            if (sampleSizeInBytes > 4)
             {
                 throw new ArgumentOutOfRangeException(nameof(sampleSize), "Sample size must not exceed 32 bits (4 bytes)");
             }
+        }
 
+        private static IEnumerable<int> GetSamplesIterator(ushort sampleSize, byte[] body)
+        {
+            var sampleSizeInBytes = sampleSize / 8; //to bytes
             var bodyEnumerable = body as IEnumerable<byte>;
-            var prefixBytes = Enumerable.Range(0, 4 - sampleSize)
+            var prefixBytes = Enumerable.Range(0, 4 - sampleSizeInBytes)
                                       .Select(b => (byte)0);
 
-            while (bodyEnumerable.Count() >= sampleSize)
+            while (bodyEnumerable.Count() >= sampleSizeInBytes)
             {
                 yield return BitConverter.ToInt32(bodyEnumerable
-                    .Take(sampleSize)
+                    .Take(sampleSizeInBytes)
                     .Concat(prefixBytes)
                     .ToArray());
-                bodyEnumerable = bodyEnumerable.Skip(sampleSize);
+                bodyEnumerable = bodyEnumerable.Skip(sampleSizeInBytes);
             }
         }
 
