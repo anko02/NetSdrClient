@@ -125,7 +125,7 @@ namespace NetSdrClientApp.Messages
             sampleSize /= 8; //to bytes
             if (sampleSize  > 4)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(sampleSize), "Sample size must not exceed 32 bits (4 bytes)");
             }
 
             var bodyEnumerable = body as IEnumerable<byte>;
@@ -182,12 +182,12 @@ namespace NetSdrClientApp.Messages
             int lengthWithHeader = msgLength + 2;
 
             //Data Items edge case
-            if (type >= NetSdrMessageHelper.MsgTypes.DataItem0 && lengthWithHeader == _maxDataItemMessageLength)
+            if (type >= NetSdrMessageHelper.MsgTypes.DataItem0 && lengthWithHeader == NetSdrMessageHelper.MaxDataItemMessageLength)
             {
                 lengthWithHeader = 0;
             }
 
-            if (msgLength < 0 || lengthWithHeader > _maxMessageLength)
+            if (msgLength < 0 || lengthWithHeader > NetSdrMessageHelper.MaxMessageLength)
             {
                 throw new ArgumentException("Message length exceeds allowed value");
             }

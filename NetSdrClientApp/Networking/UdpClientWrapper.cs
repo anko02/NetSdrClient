@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,11 +71,24 @@ public class UdpClientWrapper : IUdpClient
 
     public override int GetHashCode()
     {
-        var payload = $"{nameof(UdpClientWrapper)}|{_localEndPoint.Address}|{_localEndPoint.Port}";
+        unchecked
+        {
+            int hash = 17;
+            hash = hash * 31 + _localEndPoint.Address.GetHashCode();
+            hash = hash * 31 + _localEndPoint.Port.GetHashCode();
+            return hash;
+        }
+    }
 
-        using var md5 = MD5.Create();
-        var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(payload));
+    public override bool Equals(object? obj)
+    {
+        if (obj == null || GetType() != obj.GetType())
+        {
+            return false;
+        }
 
-        return BitConverter.ToInt32(hash, 0);
+        var other = (UdpClientWrapper)obj;
+        return _localEndPoint.Address.Equals(other._localEndPoint.Address) &&
+               _localEndPoint.Port == other._localEndPoint.Port;
     }
 }
