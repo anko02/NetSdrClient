@@ -8,6 +8,14 @@ namespace NetSdrClientAppTests
 {
     public class ArchitectureTests
     {
+        private static Assembly? _cachedAssembly;
+
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            _cachedAssembly = typeof(NetSdrClientApp.NetSdrClient).Assembly;
+        }
+
         [Test]
         public void App_Should_Not_Depend_On_EchoServer()
         {
