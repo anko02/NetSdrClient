@@ -333,7 +333,7 @@ public class NetSdrClientTests
     {
         //Arrange
         bool eventTriggered = false;
-        byte[] receivedData = null;
+        byte[]? receivedData = null;
 
         _tcpMock.Setup(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()))
             .Callback<byte[]>((bytes) =>
