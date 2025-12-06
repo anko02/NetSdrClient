@@ -75,7 +75,9 @@ jobs:
           dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage.xml `
-            /p:CoverletOutputFormat=opencover
+            /p:CoverletOutputFormat=opencover `
+            '/p:Exclude=\"[NetArchTest.*]*,[Mono.Cecil]*\"' `
+            '/p:ExcludeByFile=\"**/NetArchTest.Rules.dll,**/Mono.Cecil*.dll\"'
         shell: pwsh
       # 3) END: SonarScanner
       - name: SonarScanner End
