@@ -143,7 +143,7 @@ public class TcpClientWrapperTests
         _testServer.Start();
         var wrapper = new TcpClientWrapper(TestHost, TestPort);
 
-        byte[] receivedData = null;
+        byte[]? receivedData = null;
         wrapper.MessageReceived += (sender, data) => receivedData = data;
 
         wrapper.Connect();
@@ -159,7 +159,7 @@ public class TcpClientWrapperTests
 
         // Assert
         Assert.IsNotNull(receivedData);
-        Assert.AreEqual("Test Message", Encoding.UTF8.GetString(receivedData));
+        Assert.That(Encoding.UTF8.GetString(receivedData), Is.EqualTo("Test Message"));
 
         // Cleanup
         stream.Close();
@@ -234,7 +234,7 @@ public class TcpClientWrapperTests
         _testServer.Start();
         var wrapper = new TcpClientWrapper(TestHost, TestPort);
 
-        byte[] receivedData = null;
+        byte[]? receivedData = null;
         wrapper.MessageReceived += (sender, data) => receivedData = data;
 
         wrapper.Connect();
@@ -272,7 +272,7 @@ public class TcpClientWrapperTests
         var wrapper = new TcpClientWrapper(TestHost, TestPort);
 
         bool eventFired = false;
-        byte[] eventData = null;
+        byte[]? eventData = null;
 
         wrapper.MessageReceived += (sender, data) =>
         {
@@ -294,7 +294,7 @@ public class TcpClientWrapperTests
         // Assert
         Assert.IsTrue(eventFired);
         Assert.IsNotNull(eventData);
-        Assert.AreEqual("Event Test", Encoding.UTF8.GetString(eventData));
+        Assert.That(Encoding.UTF8.GetString(eventData), Is.EqualTo("Event Test"));
 
         // Cleanup
         stream.Close();
