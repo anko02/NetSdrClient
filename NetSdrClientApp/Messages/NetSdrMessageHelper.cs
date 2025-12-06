@@ -85,42 +85,138 @@ namespace NetSdrClientApp.Messages
 
         public static bool TranslateMessage(byte[] msg, out MsgTypes type, out ControlItemCodes itemCode, out ushort sequenceNumber, out byte[] body)
         {
+            // Initialize all out parameters at the start
+            type = MsgTypes.SetControlItem;
             itemCode = ControlItemCodes.None;
             sequenceNumber = 0;
-            bool success = true;
-            var msgEnumarable = msg as IEnumerable<byte>;
+            body = Array.Empty<byte>();
 
-            TranslateHeader(msgEnumarable.Take(_msgHeaderLength).ToArray(), out type, out int msgLength);
-            msgEnumarable = msgEnumarable.Skip(_msgHeaderLength);
-            msgLength -= _msgHeaderLength;
-
-            if (type < MsgTypes.DataItem0) // get item code
+            // Validate input
+            if (!ValidateMessageInput(msg))
             {
-                var value = BitConverter.ToUInt16(msgEnumarable.Take(_msgControlItemLength).ToArray());
-                msgEnumarable = msgEnumarable.Skip(_msgControlItemLength);
-                msgLength -= _msgControlItemLength;
-
-                if (Enum.IsDefined(typeof(ControlItemCodes), value))
-                {
-                    itemCode = (ControlItemCodes)value;
-                }
-                else
-                {
-                    success = false;
-                }
-            }
-            else // get sequenceNumber
-            {
-                sequenceNumber = BitConverter.ToUInt16(msgEnumarable.Take(_msgSequenceNumberLength).ToArray());
-                msgEnumarable = msgEnumarable.Skip(_msgSequenceNumberLength);
-                msgLength -= _msgSequenceNumberLength;
+                return false;
             }
 
-            body = msgEnumarable.ToArray();
+            // Parse header
+            if (!ParseMessageHeader(msg, out type, out int messageLength))
+            {
+                return false;
+            }
 
-            success &= body.Length == msgLength;
+            // Parse message body based on type
+            return ParseMessageBody(msg, type, messageLength, out itemCode, out sequenceNumber, out body);
+        }
 
-            return success;
+        private static bool ValidateMessageInput(byte[] msg)
+        {
+            return msg != null && msg.Length >= 2;
+        }
+
+        private static bool ParseMessageHeader(byte[] msg, out MsgTypes type, out int messageLength)
+        {
+            type = MsgTypes.SetControlItem;
+            messageLength = 0;
+
+            try
+            {
+                var headerValue = BitConverter.ToUInt16(msg, 0);
+                type = (MsgTypes)(headerValue >> 13);
+                messageLength = headerValue & 0x1FFF;
+
+                return msg.Length == messageLength;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool ParseMessageBody(byte[] msg, MsgTypes type, int messageLength, out ControlItemCodes itemCode, out ushort sequenceNumber, out byte[] body)
+        {
+            itemCode = ControlItemCodes.None;
+            sequenceNumber = 0;
+            body = Array.Empty<byte>();
+
+            if (IsDataItemMessage(type))
+            {
+                return ParseDataItemMessage(msg, type, out itemCode, out sequenceNumber, out body);
+            }
+            else
+            {
+                return ParseControlMessage(msg, out itemCode, out body);
+            }
+        }
+
+        private static bool IsDataItemMessage(MsgTypes type)
+        {
+            return type == MsgTypes.DataItem0 || type == MsgTypes.DataItem1 || type == MsgTypes.DataItem2;
+        }
+
+        private static bool ParseDataItemMessage(byte[] msg, MsgTypes type, out ControlItemCodes itemCode, out ushort sequenceNumber, out byte[] body)
+        {
+            itemCode = ControlItemCodes.None;
+            sequenceNumber = 0;
+            body = Array.Empty<byte>();
+
+            try
+            {
+                if (type == MsgTypes.DataItem0)
+                {
+                    if (msg.Length < 4) return false;
+
+                    var itemCodeValue = BitConverter.ToUInt16(msg, 2);
+                    if (!Enum.IsDefined(typeof(ControlItemCodes), (int)itemCodeValue))
+                    {
+                        return false;
+                    }
+
+                    itemCode = (ControlItemCodes)itemCodeValue;
+                    body = msg.Skip(4).ToArray();
+                }
+                else if (type == MsgTypes.DataItem1)
+                {
+                    if (msg.Length < 4) return false;
+
+                    sequenceNumber = BitConverter.ToUInt16(msg, 2);
+                    body = msg.Skip(4).ToArray();
+                }
+                else // DataItem2
+                {
+                    body = msg.Skip(2).ToArray();
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool ParseControlMessage(byte[] msg, out ControlItemCodes itemCode, out byte[] body)
+        {
+            itemCode = ControlItemCodes.None;
+            body = Array.Empty<byte>();
+
+            try
+            {
+                if (msg.Length < 4) return false;
+
+                var itemCodeValue = BitConverter.ToUInt16(msg, 2);
+                if (!Enum.IsDefined(typeof(ControlItemCodes), (int)itemCodeValue))
+                {
+                    return false;
+                }
+
+                itemCode = (ControlItemCodes)itemCodeValue;
+                body = msg.Skip(4).ToArray();
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public static IEnumerable<int> GetSamples(ushort sampleSize, byte[] body)
@@ -131,27 +227,36 @@ namespace NetSdrClientApp.Messages
 
         private static void ValidateSampleSize(ushort sampleSize)
         {
-            var sampleSizeInBytes = sampleSize / 8;
-            if (sampleSizeInBytes > 4)
+            if (sampleSize > 32 || sampleSize == 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(sampleSize), "Sample size must not exceed 32 bits (4 bytes)");
+                throw new ArgumentOutOfRangeException(nameof(sampleSize),
+                    "Sample size must be between 1 and 32 bits");
             }
         }
 
         private static IEnumerable<int> GetSamplesIterator(ushort sampleSize, byte[] body)
         {
-            var sampleSizeInBytes = sampleSize / 8; //to bytes
-            var bodyEnumerable = body as IEnumerable<byte>;
-            var prefixBytes = Enumerable.Range(0, 4 - sampleSizeInBytes)
-                                      .Select(b => (byte)0);
-
-            while (bodyEnumerable.Count() >= sampleSizeInBytes)
+            if (body == null || body.Length == 0)
             {
-                yield return BitConverter.ToInt32(bodyEnumerable
-                    .Take(sampleSizeInBytes)
-                    .Concat(prefixBytes)
-                    .ToArray());
-                bodyEnumerable = bodyEnumerable.Skip(sampleSizeInBytes);
+                yield break;
+            }
+
+            int bytesPerSample = (sampleSize + 7) / 8;
+
+            for (int i = 0; i < body.Length; i += bytesPerSample)
+            {
+                if (i + bytesPerSample > body.Length)
+                {
+                    break;
+                }
+
+                int sample = 0;
+                for (int j = 0; j < bytesPerSample && j < 4; j++)
+                {
+                    sample |= (body[i + j] << (j * 8));
+                }
+
+                yield return sample;
             }
         }
 

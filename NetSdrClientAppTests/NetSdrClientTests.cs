@@ -26,10 +26,8 @@ public class NetSdrClientTests
             _tcpMock.Setup(tcp => tcp.Connected).Returns(false);
         });
 
-        _tcpMock.Setup(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>())).Callback<byte[]>((bytes) =>
-        {
-            _tcpMock.Raise(tcp => tcp.MessageReceived += null, _tcpMock.Object, bytes);
-        });
+        _tcpMock.Setup(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()))
+        .Returns(Task.CompletedTask);
 
         _updMock = new Mock<IUdpClient>();
 

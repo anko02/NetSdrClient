@@ -69,6 +69,11 @@ namespace NetSdrClientApp
                 return;
             }
 
+            if (IQStarted)
+            {
+                return;
+            }
+
             var start = (byte)0x02;
             var fifo16bitCaptureMode = (byte)0x01;
             var n = (byte)1;
