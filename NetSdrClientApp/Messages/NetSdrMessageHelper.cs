@@ -12,9 +12,7 @@ namespace NetSdrClientApp.Messages
     {
         private const short _maxMessageLength = 8191;
         private const short _maxDataItemMessageLength = 8194;
-        private const short _msgHeaderLength = 2; //2 byte, 16 bit
-        private const short _msgControlItemLength = 2; //2 byte, 16 bit
-        private const short _msgSequenceNumberLength = 2; //2 byte, 16 bit
+
 
         public const short MaxMessageLength = 8191;
         public const short MaxDataItemMessageLength = 8194;
@@ -98,13 +96,13 @@ namespace NetSdrClientApp.Messages
             }
 
             // Parse header
-            if (!ParseMessageHeader(msg, out type, out int messageLength))
+            if (!ParseMessageHeader(msg, out type, out _))
             {
                 return false;
             }
 
             // Parse message body based on type
-            return ParseMessageBody(msg, type, messageLength, out itemCode, out sequenceNumber, out body);
+            return ParseMessageBody(msg, type, out itemCode, out sequenceNumber, out body);
         }
 
         private static bool ValidateMessageInput(byte[] msg)
@@ -131,7 +129,7 @@ namespace NetSdrClientApp.Messages
             }
         }
 
-        private static bool ParseMessageBody(byte[] msg, MsgTypes type, int messageLength, out ControlItemCodes itemCode, out ushort sequenceNumber, out byte[] body)
+        private static bool ParseMessageBody(byte[] msg, MsgTypes type, out ControlItemCodes itemCode, out ushort sequenceNumber, out byte[] body)
         {
             itemCode = ControlItemCodes.None;
             sequenceNumber = 0;
@@ -278,44 +276,34 @@ namespace NetSdrClientApp.Messages
             return BitConverter.GetBytes((ushort)(lengthWithHeader + ((int)type << 13)));
         }
 
-        private static void TranslateHeader(byte[] header, out MsgTypes type, out int msgLength)
+
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct MessageHeader
         {
-            var num = BitConverter.ToUInt16(header.ToArray());
-            type = (MsgTypes)(num >> 13);
-            msgLength = num - ((int)type << 13);
-
-            if (type >= MsgTypes.DataItem0 && msgLength == 0)
+            public ushort HeaderValue;
+            public MessageHeader(NetSdrMessageHelper.MsgTypes type, int msgLength)
             {
-                msgLength = _maxDataItemMessageLength;
-            }
-        }
-    }
+                int lengthWithHeader = msgLength + 2;
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct MessageHeader
-    {
-        public ushort HeaderValue;
-        public MessageHeader(NetSdrMessageHelper.MsgTypes type, int msgLength)
-        {
-            int lengthWithHeader = msgLength + 2;
+                //Data Items edge case
+                if (type >= NetSdrMessageHelper.MsgTypes.DataItem0 && lengthWithHeader == NetSdrMessageHelper.MaxDataItemMessageLength)
+                {
+                    lengthWithHeader = 0;
+                }
 
-            //Data Items edge case
-            if (type >= NetSdrMessageHelper.MsgTypes.DataItem0 && lengthWithHeader == NetSdrMessageHelper.MaxDataItemMessageLength)
-            {
-                lengthWithHeader = 0;
+                if (msgLength < 0 || lengthWithHeader > NetSdrMessageHelper.MaxMessageLength)
+                {
+                    throw new ArgumentException("Message length exceeds allowed value");
+                }
+
+                HeaderValue = (ushort)(lengthWithHeader + ((int)type << 13));
             }
 
-            if (msgLength < 0 || lengthWithHeader > NetSdrMessageHelper.MaxMessageLength)
+            public NetSdrMessageHelper.MsgTypes GetMessageType()
             {
-                throw new ArgumentException("Message length exceeds allowed value");
+                return (NetSdrMessageHelper.MsgTypes)(HeaderValue >> 13);
             }
-
-            HeaderValue = (ushort)(lengthWithHeader + ((int)type << 13));
-        }
-
-        public NetSdrMessageHelper.MsgTypes GetMessageType()
-        {
-            return (NetSdrMessageHelper.MsgTypes)(HeaderValue >> 13);
         }
     }
 }
