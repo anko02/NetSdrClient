@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 /// <summary>
 /// This program was designed for test purposes only
@@ -13,8 +14,8 @@ namespace EchoServer;
 public class EchoServer
 {
     private readonly int _port;
-    private TcpListener _listener;
-    private CancellationTokenSource _cancellationTokenSource;
+    private TcpListener? _listener;
+    private readonly CancellationTokenSource _cancellationTokenSource;
 
 
     public EchoServer(int port)
@@ -48,7 +49,7 @@ public class EchoServer
         Console.WriteLine("Server shutdown.");
     }
 
-    private async Task HandleClientAsync(TcpClient client, CancellationToken token)
+    private static async Task HandleClientAsync(TcpClient client, CancellationToken token)
     {
         using (NetworkStream stream = client.GetStream())
         {
@@ -79,17 +80,17 @@ public class EchoServer
     public void Stop()
     {
         _cancellationTokenSource.Cancel();
-        _listener.Stop();
+        _listener?.Stop();
         _cancellationTokenSource.Dispose();
         Console.WriteLine("Server stopped.");
     }
 
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
     {
         EchoServer server = new EchoServer(5000);
 
         // Start the server in a separate task
-        _ = Task.Run(() => server.StartAsync());
+        _ = Task.Run(async () => await server.StartAsync());
 
         string host = "127.0.0.1"; // Target IP
         int port = 60000;          // Target Port
@@ -119,7 +120,8 @@ public class UdpTimedSender : IDisposable
     private readonly string _host;
     private readonly int _port;
     private readonly UdpClient _udpClient;
-    private Timer _timer;
+    private Timer? _timer;
+    private bool _disposed = false;
 
     public UdpTimedSender(string host, int port)
     {
@@ -130,6 +132,8 @@ public class UdpTimedSender : IDisposable
 
     public void StartSending(int intervalMilliseconds)
     {
+        if (_disposed)
+            throw new ObjectDisposedException(nameof(UdpTimedSender));
         if (_timer != null)
             throw new InvalidOperationException("Sender is already running.");
 
@@ -138,14 +142,16 @@ public class UdpTimedSender : IDisposable
 
     ushort i = 0;
 
-    private void SendMessageCallback(object state)
+    private void SendMessageCallback(object? state)
     {
+        if (_disposed)
+            return;
+
         try
         {
             //dummy data
-            Random rnd = new Random();
             byte[] samples = new byte[1024];
-            rnd.NextBytes(samples);
+            RandomNumberGenerator.Fill(samples);
             i++;
 
             byte[] msg = (new byte[] { 0x04, 0x84 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
@@ -162,13 +168,31 @@ public class UdpTimedSender : IDisposable
 
     public void StopSending()
     {
-        _timer?.Dispose();
-        _timer = null;
+        var timer = _timer;
+        if (timer != null)
+        {
+            timer.Dispose();
+            _timer = null;
+        }
     }
 
-    public void Dispose()
+    protected virtual void Dispose(bool disposing)
     {
-        StopSending();
-        _udpClient.Dispose();
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                StopSending();
+                _udpClient.Dispose();
+            }
+
+            _disposed = true;
+        }
+    }
+
+    public void Dispose()   
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }
