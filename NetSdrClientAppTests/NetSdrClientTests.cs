@@ -27,7 +27,12 @@ public class NetSdrClientTests
         });
 
         _tcpMock.Setup(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()))
-        .Returns(Task.CompletedTask);
+            .Callback(() =>
+            {
+                var fakeResponse = new byte[] { 0x00, 0x01, 0x02 };
+                _tcpMock.Raise(t => t.MessageReceived += null, _tcpMock.Object, fakeResponse);
+            })
+            .Returns(Task.CompletedTask);
 
         _updMock = new Mock<IUdpClient>();
 
@@ -360,7 +365,7 @@ public class NetSdrClientTests
 
         //assert
         _tcpMock.Verify(tcp => tcp.Connect(), Times.Once);
-        _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Exactly(4));
+        _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Exactly(6));
         _updMock.Verify(udp => udp.StartListeningAsync(), Times.Once);
         _updMock.Verify(udp => udp.StopListening(), Times.Once);
         _tcpMock.Verify(tcp => tcp.Disconnect(), Times.Once);
