@@ -160,9 +160,12 @@ namespace NetSdrClientAppTests
             _wrapper = new UdpClientWrapper(_testPort);
 
             // Act & Assert - should not throw
-            _wrapper.StopListening();
-            _wrapper.StopListening();
-            _wrapper.StopListening();
+            Assert.DoesNotThrow(() =>
+            {
+                _wrapper.StopListening();
+                _wrapper.StopListening();
+                _wrapper.StopListening();
+            });
         }
 
         [Test]
@@ -172,9 +175,12 @@ namespace NetSdrClientAppTests
             _wrapper = new UdpClientWrapper(_testPort);
 
             // Act & Assert - should not throw
-            _wrapper.Exit();
-            _wrapper.Exit();
-            _wrapper.Exit();
+            Assert.DoesNotThrow(() =>
+            {
+                _wrapper.Exit();
+                _wrapper.Exit();
+                _wrapper.Exit();
+            });
         }
 
         [Test]
@@ -308,9 +314,10 @@ namespace NetSdrClientAppTests
 
             await Task.Delay(100);
 
-            // Assert - should not throw, cleanup
-            _wrapper.StopListening();
-            await Task.WhenAny(listeningTask, Task.Delay(1000));
+            // Assert - should not throw
+            Assert.DoesNotThrow(() => _wrapper.StopListening());
+            var completedTask = await Task.WhenAny(listeningTask, Task.Delay(1000));
+            Assert.That(completedTask, Is.EqualTo(listeningTask), "Listening task should complete");
         }
 
         [Test]
